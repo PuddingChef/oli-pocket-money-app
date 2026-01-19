@@ -1,0 +1,1899 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#7c3aed" />
+
+  <title>Oli's Pocket Money</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#111a33;
+      --card2:#0f1730;
+      --text:#eef2ff;
+      --muted:#b8c0ff;
+      --muted2:#9aa4ff;
+      --accent:#7c3aed;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --line:rgba(255,255,255,.10);
+      --shadow: 0 16px 40px rgba(0,0,0,.35);
+      --r: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 600px at 10% 0%, rgba(124,58,237,.25), transparent 55%),
+        radial-gradient(900px 500px at 90% 10%, rgba(34,197,94,.18), transparent 50%),
+        radial-gradient(900px 600px at 60% 110%, rgba(59,130,246,.14), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    header{
+      position:sticky; top:0; z-index:10;
+      padding:16px 16px 10px;
+      backdrop-filter: blur(10px);
+      background: rgba(11,16,32,.72);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .title{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:10px;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800;
+      letter-spacing:.2px;
+      min-width: 0;
+    }
+
+    .logo{
+      width:42px; height:42px;
+      border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,58,237,1), rgba(34,197,94,1));
+      box-shadow: 0 10px 30px rgba(124,58,237,.25);
+      position:relative;
+      flex:0 0 auto;
+    }
+    .logo:before{
+      content:"£";
+      position:absolute; inset:0;
+      display:grid; place-items:center;
+      font-size:22px;
+      font-weight:900;
+      color:white;
+      text-shadow: 0 6px 16px rgba(0,0,0,.35);
+    }
+
+    .brand .h1{ font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .brand .sub{ font-size:12px; color:var(--muted2); margin-top:2px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .topActions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+
+    .totalbar{ display:grid; grid-template-columns: 1fr; gap:10px; }
+
+    .totalcard{
+      background: linear-gradient(180deg, rgba(17,26,51,.9), rgba(15,23,48,.85));
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding:14px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .totalcard:after{
+      content:"";
+      position:absolute; inset:-80px -80px auto auto;
+      width:180px; height:180px;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, rgba(124,58,237,.35), transparent 60%);
+      filter: blur(1px);
+      pointer-events:none;
+    }
+
+    .totalrow{ display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+
+    .label{ color:var(--muted2); font-weight:700; font-size:12px; }
+    .big{ font-size:34px; font-weight:900; letter-spacing:.2px; line-height:1; }
+
+    .lastreset{ margin-top:6px; color:var(--muted); font-size:12px; font-weight:600; }
+
+    .btnrow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+
+    button, .chip{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius: 14px;
+      font-weight:800;
+      font-size:13px;
+      letter-spacing:.2px;
+      cursor:pointer;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
+      user-select:none;
+    }
+
+    button:active{ transform: translateY(1px) scale(.99); }
+    button.primary{ background: rgba(124,58,237,.25); border-color: rgba(124,58,237,.55); }
+    button.good{ background: rgba(34,197,94,.20); border-color: rgba(34,197,94,.55); }
+    button.warn{ background: rgba(245,158,11,.18); border-color: rgba(245,158,11,.55); }
+    button.danger{ background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.55); }
+    button.small{ padding:9px 10px; font-size:12px; border-radius: 12px; }
+    button[disabled]{ cursor:not-allowed; opacity:.55; }
+
+    main{ padding: 14px 14px 90px; max-width: 680px; margin: 0 auto; }
+
+    .tabs{
+      position: fixed; left:0; right:0; bottom:0;
+      background: rgba(11,16,32,.78);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:6px;
+      padding: 8px 10px;
+      z-index:20;
+    }
+
+    .tab{
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+      padding: 10px 8px;
+      border-radius: 16px;
+      font-weight:900;
+      font-size:12px;
+      color: var(--muted);
+      border:1px solid transparent;
+      background: transparent;
+    }
+    .tab small{ font-size:10px; font-weight:800; opacity:.9; }
+
+    .tab.active{ color: var(--text); background: rgba(124,58,237,.18); border-color: rgba(124,58,237,.5); }
+
+    .panel{ display:none; }
+    .panel.active{ display:block; }
+
+    .sectionhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin: 14px 2px 10px; }
+
+    .sectionhead h2{ margin:0; font-size:14px; letter-spacing:.3px; color: var(--muted); font-weight:900; text-transform: uppercase; }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+
+    .card{
+      background: linear-gradient(180deg, rgba(17,26,51,.85), rgba(15,23,48,.85));
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding: 12px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    }
+
+    .chore{ display:flex; gap:10px; align-items:flex-start; }
+
+    .badge{
+      flex:0 0 auto;
+      width:56px;
+      height:56px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      background: radial-gradient(circle at 30% 30%, rgba(34,197,94,.25), rgba(124,58,237,.18));
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:900;
+      text-align:center;
+      line-height:1;
+      padding:6px 4px;
+    }
+
+    .chore .meta{ flex:1 1 auto; }
+    .chore .t{ font-weight:900; font-size:15px; margin:0 0 2px; }
+    .chore .d{ margin:0; color:var(--muted); font-weight:650; font-size:12px; line-height:1.25; }
+
+    .chore .actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .ghost{ background: rgba(255,255,255,.03); }
+
+    .row{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-weight:800;
+      font-size:12px;
+    }
+
+    .kpi{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+
+    .kpi .mini{
+      padding:12px;
+      border-radius: var(--r);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+    }
+
+    .kpi .mini .v{ font-size:18px; font-weight:900; }
+    .kpi .mini .l{ font-size:12px; color:var(--muted2); font-weight:800; margin-top:2px; }
+
+    .empty{ text-align:center; padding:18px 10px; color: var(--muted); font-weight:750; line-height:1.35; }
+
+    .modalback{ position: fixed; inset:0; background: rgba(0,0,0,.55); display:none; align-items:flex-end; justify-content:center; z-index:50; padding: 12px; }
+    .modalback.show{ display:flex; }
+
+    .modal{
+      width:min(680px, 100%);
+      background: rgba(17,26,51,.96);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 22px;
+      box-shadow: 0 30px 70px rgba(0,0,0,.55);
+      overflow:hidden;
+      transform: translateY(12px);
+      animation: pop .12s ease-out forwards;
+    }
+
+    @keyframes pop{ to{ transform: translateY(0); } }
+
+    .modal header{ position:relative; top:auto; padding: 14px 14px 10px; background: transparent; border-bottom:1px solid var(--line); backdrop-filter:none; }
+    .modal header .mh{ font-weight:900; font-size:14px; }
+
+    .modal .body{ padding: 12px 14px 14px; }
+
+    .field{ display:grid; gap:6px; margin:10px 0; }
+    .field label{ font-size:12px; color:var(--muted2); font-weight:900; letter-spacing:.2px; }
+
+    input, textarea, select{
+      width:100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:none;
+      font-weight:800;
+      font-size:14px;
+    }
+
+    textarea{ resize:none; min-height:78px; font-weight:750; }
+
+    .modal .footer{ padding: 12px 14px 14px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 78px;
+      transform: translateX(-50%);
+      background: rgba(17,26,51,.96);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-weight:850;
+      font-size:13px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.55);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .16s ease, transform .16s ease;
+      z-index:60;
+      white-space:nowrap;
+    }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-2px); }
+
+    .floatplus{
+      position:absolute;
+      right:14px;
+      top:12px;
+      padding: 8px 10px;
+      border-radius:999px;
+      background: rgba(34,197,94,.20);
+      border: 1px solid rgba(34,197,94,.55);
+      color: var(--text);
+      font-weight:900;
+      opacity:0;
+      transform: translateY(8px);
+      pointer-events:none;
+    }
+
+    .floatplus.show{ animation: floatUp .75s ease-out forwards; }
+
+    @keyframes floatUp{
+      0%{ opacity:0; transform: translateY(10px); }
+      15%{ opacity:1; }
+      100%{ opacity:0; transform: translateY(-14px); }
+    }
+
+    .footnote{ color: var(--muted2); font-size: 11px; font-weight: 750; line-height: 1.35; margin-top: 10px; }
+    .divider{ height:1px; background: var(--line); margin: 12px 0; }
+
+    @media (min-width: 560px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div style="min-width:0;">
+          <div class="h1">Oli's Pocket Money</div>
+          <div class="sub">Current period + Savings bank + goals</div>
+        </div>
+      </div>
+      <div class="topActions">
+        <button class="small ghost" id="settingsBtn" title="Settings">⚙︎</button>
+        <span class="pill" id="storagePill">Local • OK</span>
+      </div>
+    </div>
+
+    <div class="totalbar">
+      <div class="totalcard" aria-live="polite">
+        <div class="floatplus" id="floatPlus">+£0.00</div>
+        <div class="totalrow">
+          <div>
+            <div class="label">Current period total</div>
+            <div class="big" id="totalDisplay">£0.00</div>
+            <div class="lastreset" id="lastReset">Last reset: never</div>
+          </div>
+          <div class="btnrow">
+            <button class="warn" id="resetTotalBtn">Reset</button>
+            <button class="good" id="manualAddBtn">+ Add</button>
+            <button class="danger" id="manualSubBtn">− Subtract</button>
+          </div>
+        </div>
+        <div class="footnote">
+          This is the <strong>current period</strong>. When you hit <strong>Reset</strong>, the amount is added into the <strong>Savings bank</strong> (History tab).
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- CHORES -->
+    <section class="panel active" id="panel-chores" aria-label="Chores">
+      <div class="sectionhead">
+        <h2>Chores</h2>
+        <button class="primary" id="addChoreBtn">+ Add chore</button>
+      </div>
+      <div class="grid" id="choresList"></div>
+      <div class="empty" id="choresEmpty" style="display:none;">
+        No chores yet. Add a few and tap <strong>Complete</strong> to ka-ching your way to savings.
+      </div>
+    </section>
+
+    <!-- ACTIVITY -->
+    <section class="panel" id="panel-activity" aria-label="Activity">
+      <div class="sectionhead">
+        <h2>Activity log</h2>
+        <button class="danger" id="clearActivityBtn">Clear (test)</button>
+      </div>
+
+      <div class="card">
+        <div class="kpi">
+          <div class="mini">
+            <div class="v" id="activityCount">0</div>
+            <div class="l">Items in log</div>
+          </div>
+          <div class="mini">
+            <div class="v" id="periodTotal">£0.00</div>
+            <div class="l">Current period total</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="grid" id="activityList" style="grid-template-columns: 1fr;"></div>
+      <div class="empty" id="activityEmpty" style="display:none;">
+        No activity yet. Complete a chore to see it logged here, with an undo button.
+      </div>
+      <div class="footnote">Clearing is mainly for testing. Requires passcode <strong>2408</strong>.</div>
+    </section>
+
+    <!-- HISTORY (SAVINGS BANK) -->
+    <section class="panel" id="panel-history" aria-label="History">
+      <div class="sectionhead">
+        <h2>History</h2>
+        <button class="danger" id="clearHistoryBtn">Clear (test)</button>
+      </div>
+
+      <div class="card">
+        <div class="kpi">
+          <div class="mini">
+            <div class="v" id="bankAvailable">£0.00</div>
+            <div class="l">Savings bank (available)</div>
+          </div>
+          <div class="mini">
+            <div class="v" id="bankTotal">£0.00</div>
+            <div class="l">Savings bank (total)</div>
+          </div>
+        </div>
+        <div class="footnote">
+          The Savings bank is the sum of all reset periods. Redeemed goals subtract from the <strong>available</strong> bank amount.
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="card">
+        <div class="row" style="gap:12px;">
+          <div class="pill" style="flex:1 1 auto; justify-content:space-between;">
+            <span>View</span>
+            <select id="historyMode" style="width:auto; min-width:160px; padding:8px 10px; border-radius:12px;">
+              <option value="records">Reset periods</option>
+              <option value="week">By week</option>
+              <option value="month">By month</option>
+            </select>
+          </div>
+          <div class="pill" style="flex:1 1 auto; justify-content:space-between;">
+            <span>Filter</span>
+            <select id="historyFilter" style="width:auto; min-width:160px; padding:8px 10px; border-radius:12px;"></select>
+          </div>
+        </div>
+        <div class="footnote">
+          History is created when you hit <strong>Reset</strong>. Each record is a completed earning period (added into the Savings bank).
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="grid" id="historyList" style="grid-template-columns: 1fr;"></div>
+      <div class="empty" id="historyEmpty" style="display:none;">
+        No history yet. When you reset the total, the finished period will appear here.
+      </div>
+      <div class="footnote">Clearing is mainly for testing. Requires passcode <strong>2408</strong>.</div>
+    </section>
+
+    <!-- GOALS -->
+    <section class="panel" id="panel-goals" aria-label="Goals">
+      <div class="sectionhead">
+        <h2>Saving goals</h2>
+        <button class="primary" id="addGoalBtn">+ Add goal</button>
+      </div>
+
+      <div class="card">
+        <div class="kpi">
+          <div class="mini">
+            <div class="v" id="goalBalance">£0.00</div>
+            <div class="l">Savings bank available</div>
+          </div>
+          <div class="mini">
+            <div class="v" id="goalSpent">£0.00</div>
+            <div class="l">Spent on redeemed goals</div>
+          </div>
+        </div>
+        <div class="footnote">
+          Important: Redeeming a goal subtracts from the <strong>Savings bank</strong> (History tab), not from the current period total at the top.
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="grid" id="goalsList" style="grid-template-columns: 1fr;"></div>
+      <div class="empty" id="goalsEmpty" style="display:none;">
+        No goals yet. Add something Oli wants to save for and track progress!
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Tabs">
+    <button class="tab active" data-tab="chores" aria-current="page">Chores<small>List</small></button>
+    <button class="tab" data-tab="activity">Activity<small>Log</small></button>
+    <button class="tab" data-tab="history">History<small>Bank</small></button>
+    <button class="tab" data-tab="goals">Goals<small>Save</small></button>
+  </nav>
+
+  <!-- Modal container -->
+  <div class="modalback" id="modalBack" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" id="modal">
+      <header>
+        <div class="mh" id="modalTitle">Modal</div>
+      </header>
+      <div class="body" id="modalBody"></div>
+      <div class="footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <script>
+  (function(){
+    "use strict";
+
+    // -----------------------------
+    // PWA: service worker + notifications (best-effort without backend)
+    // -----------------------------
+    let swReg = null;
+    async function registerSW(){
+      if(!("serviceWorker" in navigator)) return;
+      try{
+        swReg = await navigator.serviceWorker.register("sw.js");
+      }catch(e){
+        // Requires HTTPS or localhost
+      }
+    }
+    registerSW();
+
+    async function swNotify(title, body){
+      try{
+        if(!swReg) return false;
+        if(Notification.permission !== "granted") return false;
+        if(!swReg.active) return false;
+        swReg.active.postMessage({ type:"notify", title, body });
+        return true;
+      }catch(e){
+        return false;
+      }
+    }
+
+    // -----------------------------
+    // Storage
+    // -----------------------------
+    const STORAGE_KEY = "olisPocketMoney_v4";
+
+    const nowISO = () => new Date().toISOString();
+
+    const fmtGBP = (v) => {
+      const n = Number(v || 0);
+      return n.toLocaleString("en-GB", { style:"currency", currency:"GBP" });
+    };
+
+    const fmtDateTime = (iso) => {
+      if(!iso) return "never";
+      const d = new Date(iso);
+      return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+    };
+
+    const uid = () => "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+
+    function safeLoad(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch(e){ return null; }
+    }
+
+    function safeSave(state){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return true;
+      }catch(e){ return false; }
+    }
+
+    function round2(n){ return Math.round(Number(n) * 100) / 100; }
+
+    // -----------------------------
+    // State model
+    // -----------------------------
+    const defaultState = () => ({
+      version: 4,
+      chores: [
+        { id: uid(), title: "Make the bed", desc: "Tidy up and straighten the duvet", value: 0.50, frequency: "daily",  lastCompletedAt: null },
+        { id: uid(), title: "Clear the table", desc: "After dinner, plates and cutlery away", value: 0.75, frequency: "anytime", lastCompletedAt: null },
+        { id: uid(), title: "Help with recycling", desc: "Sort and put out the right bins", value: 1.00, frequency: "weekly", lastCompletedAt: null }
+      ],
+      // Current period total (resets)
+      earnedTotal: 0,
+      lastResetAt: null,
+      periodStartAt: nowISO(),
+      activity: [],
+      // History periods (bank is sum of totals here)
+      history: [],
+      // Goals are paid out of the bank, not the current period
+      goals: [
+        { id: uid(), title: "LEGO set", desc: "Something awesome", cost: 12.99, createdAt: nowISO(), redeemedAt: null }
+      ],
+      bankSpent: 0,
+      goalRedemptions: [],
+      settings: {
+        soundEnabled: true,
+        keepActivityOnReset: false,
+        weeklyResetReminderEnabled: true,
+        reminderHour: 18,
+        reminderMinute: 0,
+        notificationsEnabled: false,
+        lastReminderWeekKey: null
+      }
+    });
+
+    function mergeDefaults(imported){
+      const d = defaultState();
+      const s = (typeof imported === "object" && imported) ? imported : {};
+      const merged = { ...d, ...s };
+      merged.settings = { ...d.settings, ...(s.settings || {}) };
+
+      merged.chores = Array.isArray(s.chores) ? s.chores.map(c => ({
+        id: c.id || uid(),
+        title: String(c.title || "").slice(0, 40),
+        desc: String(c.desc || "").slice(0, 90),
+        value: round2(Number(c.value || 0)),
+        frequency: (c.frequency === "daily" || c.frequency === "weekly" || c.frequency === "anytime") ? c.frequency : "anytime",
+        lastCompletedAt: c.lastCompletedAt || null
+      })) : d.chores;
+
+      merged.activity = Array.isArray(s.activity) ? s.activity : d.activity;
+      merged.history  = Array.isArray(s.history)  ? s.history  : d.history;
+      merged.goals    = Array.isArray(s.goals)    ? s.goals    : d.goals;
+
+      merged.earnedTotal = round2(Number(merged.earnedTotal || 0));
+
+      // Migrate older name goalsSpent -> bankSpent if present
+      merged.bankSpent = round2(Number((s.bankSpent ?? s.goalsSpent ?? merged.bankSpent) || 0));
+
+      merged.goalRedemptions = Array.isArray(s.goalRedemptions) ? s.goalRedemptions : (merged.goalRedemptions || []);
+
+      merged.version = 4;
+      if(!merged.periodStartAt) merged.periodStartAt = nowISO();
+      return merged;
+    }
+
+    let state = mergeDefaults(safeLoad() || defaultState());
+    safeSave(state);
+
+    // Storage status pill
+    const storagePill = document.getElementById("storagePill");
+    if(!safeSave(state)){
+      storagePill.textContent = "Local • ERROR";
+      storagePill.style.borderColor = "rgba(239,68,68,.55)";
+      storagePill.style.background = "rgba(239,68,68,.18)";
+    }
+
+    // -----------------------------
+    // Savings bank helpers
+    // -----------------------------
+    function bankTotal(){
+      return round2((state.history || []).reduce((sum, r) => sum + Number(r.total || 0), 0));
+    }
+
+    function bankAvailable(){
+      return round2(bankTotal() - Number(state.bankSpent || 0));
+    }
+
+    // -----------------------------
+    // Elements
+    // -----------------------------
+    const el = {
+      totalDisplay: document.getElementById("totalDisplay"),
+      lastReset: document.getElementById("lastReset"),
+      floatPlus: document.getElementById("floatPlus"),
+
+      choresList: document.getElementById("choresList"),
+      choresEmpty: document.getElementById("choresEmpty"),
+
+      activityList: document.getElementById("activityList"),
+      activityEmpty: document.getElementById("activityEmpty"),
+      activityCount: document.getElementById("activityCount"),
+      periodTotal: document.getElementById("periodTotal"),
+
+      bankAvailable: document.getElementById("bankAvailable"),
+      bankTotal: document.getElementById("bankTotal"),
+
+      historyMode: document.getElementById("historyMode"),
+      historyFilter: document.getElementById("historyFilter"),
+      historyList: document.getElementById("historyList"),
+      historyEmpty: document.getElementById("historyEmpty"),
+
+      goalsList: document.getElementById("goalsList"),
+      goalsEmpty: document.getElementById("goalsEmpty"),
+      goalBalance: document.getElementById("goalBalance"),
+      goalSpent: document.getElementById("goalSpent"),
+
+      modalBack: document.getElementById("modalBack"),
+      modalTitle: document.getElementById("modalTitle"),
+      modalBody: document.getElementById("modalBody"),
+      modalFooter: document.getElementById("modalFooter"),
+
+      toast: document.getElementById("toast"),
+
+      resetTotalBtn: document.getElementById("resetTotalBtn"),
+      manualAddBtn: document.getElementById("manualAddBtn"),
+      manualSubBtn: document.getElementById("manualSubBtn"),
+      addChoreBtn: document.getElementById("addChoreBtn"),
+      clearActivityBtn: document.getElementById("clearActivityBtn"),
+      clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+      addGoalBtn: document.getElementById("addGoalBtn"),
+      settingsBtn: document.getElementById("settingsBtn")
+    };
+
+    // -----------------------------
+    // Sound (simple "ka-ching")
+    // -----------------------------
+    let audioCtx = null;
+    function playKaChing(){
+      if(!state.settings?.soundEnabled) return;
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const t0 = audioCtx.currentTime;
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.20, t0 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
+        gain.connect(audioCtx.destination);
+
+        const o1 = audioCtx.createOscillator();
+        o1.type = "sine";
+        o1.frequency.setValueAtTime(880, t0);
+        o1.frequency.exponentialRampToValueAtTime(1320, t0 + 0.08);
+        o1.connect(gain);
+
+        const o2 = audioCtx.createOscillator();
+        o2.type = "triangle";
+        o2.frequency.setValueAtTime(660, t0 + 0.06);
+        o2.frequency.exponentialRampToValueAtTime(990, t0 + 0.14);
+        o2.connect(gain);
+
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1) * 0.2;
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.0001, t0);
+        noiseGain.gain.exponentialRampToValueAtTime(0.08, t0 + 0.01);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+        noise.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+
+        o1.start(t0); o1.stop(t0 + 0.18);
+        o2.start(t0 + 0.06); o2.stop(t0 + 0.22);
+        noise.start(t0); noise.stop(t0 + 0.12);
+      }catch(e){}
+    }
+
+    // -----------------------------
+    // UI helpers
+    // -----------------------------
+    let toastTimer = null;
+    function toast(msg){
+      el.toast.textContent = msg;
+      el.toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.toast.classList.remove("show"), 1400);
+    }
+
+    function openModal({ title, bodyHTML, footerButtons }){
+      el.modalTitle.textContent = title;
+      el.modalBody.innerHTML = bodyHTML;
+      el.modalFooter.innerHTML = "";
+      footerButtons.forEach(btn => {
+        const b = document.createElement("button");
+        b.textContent = btn.label;
+        b.className = btn.className || "";
+        b.addEventListener("click", () => btn.onClick && btn.onClick());
+        el.modalFooter.appendChild(b);
+      });
+      el.modalBack.classList.add("show");
+      el.modalBack.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal(){
+      el.modalBack.classList.remove("show");
+      el.modalBack.setAttribute("aria-hidden", "true");
+      el.modalBody.innerHTML = "";
+      el.modalFooter.innerHTML = "";
+    }
+
+    el.modalBack.addEventListener("click", (e) => { if(e.target === el.modalBack) closeModal(); });
+
+    function confirmModal({ title="Are you sure?", message="This can’t be undone.", confirmLabel="Yes", confirmClass="warn", cancelLabel="Cancel" }){
+      return new Promise(resolve => {
+        openModal({
+          title,
+          bodyHTML: `<div style="font-weight:800; line-height:1.35; color: var(--text);">${message}</div>`,
+          footerButtons: [
+            { label: cancelLabel, className: "ghost", onClick: () => { closeModal(); resolve(false); } },
+            { label: confirmLabel, className: confirmClass, onClick: () => { closeModal(); resolve(true); } }
+          ]
+        });
+      });
+    }
+
+    function passcodeModal({ title, message }){
+      return new Promise(resolve => {
+        openModal({
+          title,
+          bodyHTML: `
+            <div style="font-weight:800; color:var(--text); line-height:1.35;">${message}</div>
+            <div class="field" style="margin-top:12px;">
+              <label>Passcode</label>
+              <input id="pass" inputmode="numeric" autocomplete="one-time-code" placeholder="2408" />
+            </div>
+            <div class="footnote">For testing resets/clears.</div>
+          `,
+          footerButtons: [
+            { label: "Cancel", className: "ghost", onClick: () => { closeModal(); resolve(false); } },
+            { label: "Confirm", className: "danger", onClick: () => {
+                const v = (document.getElementById("pass")?.value || "").trim();
+                closeModal();
+                resolve(v === "2408");
+              }
+            }
+          ]
+        });
+        setTimeout(() => document.getElementById("pass")?.focus(), 40);
+      });
+    }
+
+    // Animated count-up
+    let anim = { raf: null, from: 0, to: 0, start: 0, dur: 520 };
+    function animateTotal(toValue){
+      cancelAnimationFrame(anim.raf);
+      anim.from = Number(el.totalDisplay.dataset.value || state.earnedTotal || 0);
+      anim.to = Number(toValue || 0);
+      anim.start = performance.now();
+      function step(t){
+        const p = Math.min(1, (t - anim.start) / anim.dur);
+        const e = 1 - Math.pow(1 - p, 3);
+        const v = anim.from + (anim.to - anim.from) * e;
+        el.totalDisplay.textContent = fmtGBP(v);
+        el.totalDisplay.dataset.value = String(v);
+        if(p < 1) anim.raf = requestAnimationFrame(step);
+        else {
+          el.totalDisplay.textContent = fmtGBP(anim.to);
+          el.totalDisplay.dataset.value = String(anim.to);
+        }
+      }
+      anim.raf = requestAnimationFrame(step);
+    }
+
+    function showFloatPlus(amount){
+      const sign = amount >= 0 ? "+" : "−";
+      el.floatPlus.textContent = `${sign}${fmtGBP(Math.abs(amount))}`;
+      el.floatPlus.classList.remove("show");
+      void el.floatPlus.offsetWidth;
+      el.floatPlus.classList.add("show");
+    }
+
+    function toMoney(raw){
+      const n = Number(String(raw || "").replace(/[^0-9.\-]/g, ""));
+      if(!Number.isFinite(n)) return 0;
+      return Math.round(n * 100) / 100;
+    }
+
+    function escapeHTML(s){
+      return String(s || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function localDateKey(iso){
+      const d = iso ? new Date(iso) : new Date();
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+
+    function isoWeekKey(date){
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+      return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2,"0")}`;
+    }
+
+    function monthKey(date){
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`;
+    }
+
+    function currentWeekKey(){ return isoWeekKey(new Date()); }
+
+    function canCompleteChore(c){
+      const f = c.frequency || "anytime";
+      if(f === "anytime") return { ok:true, reason:"" };
+      if(!c.lastCompletedAt) return { ok:true, reason:"" };
+
+      if(f === "daily"){
+        const last = localDateKey(c.lastCompletedAt);
+        const today = localDateKey(nowISO());
+        if(last === today) return { ok:false, reason:"Done today" };
+      }
+      if(f === "weekly"){
+        const lastWeek = isoWeekKey(new Date(c.lastCompletedAt));
+        const thisWeek = isoWeekKey(new Date());
+        if(lastWeek === thisWeek) return { ok:false, reason:"Done this week" };
+      }
+      return { ok:true, reason:"" };
+    }
+
+    // -----------------------------
+    // Tabs
+    // -----------------------------
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const panels = {
+      chores: document.getElementById("panel-chores"),
+      activity: document.getElementById("panel-activity"),
+      history: document.getElementById("panel-history"),
+      goals: document.getElementById("panel-goals")
+    };
+
+    function switchTab(name){
+      tabs.forEach(t => {
+        const active = t.dataset.tab === name;
+        t.classList.toggle("active", active);
+        if(active) t.setAttribute("aria-current", "page");
+        else t.removeAttribute("aria-current");
+      });
+      Object.entries(panels).forEach(([k, p]) => p.classList.toggle("active", k === name));
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    tabs.forEach(t => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+
+    // -----------------------------
+    // Chores CRUD
+    // -----------------------------
+    function openChoreEditor(chore){
+      const isEdit = !!chore;
+      const c = chore || { id: uid(), title:"", desc:"", value: 0.5, frequency:"anytime", lastCompletedAt: null };
+
+      openModal({
+        title: isEdit ? "Edit chore" : "Add chore",
+        bodyHTML: `
+          <div class="field">
+            <label>Title</label>
+            <input id="cTitle" maxlength="40" placeholder="e.g., Tidy room" value="${escapeHTML(c.title)}" />
+          </div>
+          <div class="field">
+            <label>Short description</label>
+            <textarea id="cDesc" maxlength="90" placeholder="What needs doing?">${escapeHTML(c.desc || "")}</textarea>
+          </div>
+          <div class="field">
+            <label>Value (GBP)</label>
+            <input id="cValue" inputmode="decimal" placeholder="1.00" value="${Number(c.value || 0).toFixed(2)}" />
+          </div>
+          <div class="field">
+            <label>Frequency</label>
+            <select id="cFreq">
+              <option value="anytime">Anytime (repeatable)</option>
+              <option value="daily">Once per day</option>
+              <option value="weekly">Once per week</option>
+            </select>
+          </div>
+          <div class="footnote">Frequency prevents double-counting within a day/week.</div>
+        `,
+        footerButtons: [
+          { label: "Cancel", className: "ghost", onClick: closeModal },
+          { label: isEdit ? "Save" : "Add", className: "primary", onClick: () => {
+              const title = (document.getElementById("cTitle")?.value || "").trim();
+              const desc = (document.getElementById("cDesc")?.value || "").trim();
+              const value = toMoney(document.getElementById("cValue")?.value);
+              const frequency = (document.getElementById("cFreq")?.value || "anytime");
+
+              if(!title){ toast("Add a title"); return; }
+              if(value <= 0){ toast("Value must be > £0"); return; }
+
+              const clean = { id: c.id, title, desc, value, frequency, lastCompletedAt: c.lastCompletedAt || null };
+
+              if(isEdit){
+                const idx = state.chores.findIndex(x => x.id === c.id);
+                if(idx >= 0) state.chores[idx] = { ...state.chores[idx], ...clean };
+              } else {
+                state.chores.unshift(clean);
+              }
+
+              persist();
+              closeModal();
+              toast(isEdit ? "Saved" : "Added");
+              render();
+            }
+          }
+        ]
+      });
+
+      setTimeout(() => {
+        const sel = document.getElementById("cFreq");
+        if(sel) sel.value = (c.frequency === "daily" || c.frequency === "weekly" || c.frequency === "anytime") ? c.frequency : "anytime";
+        document.getElementById("cTitle")?.focus();
+      }, 50);
+    }
+
+    async function deleteChore(id){
+      const c = state.chores.find(x => x.id === id);
+      if(!c) return;
+      const ok = await confirmModal({
+        title: "Delete chore?",
+        message: `Delete <strong>${escapeHTML(c.title)}</strong>?`,
+        confirmLabel: "Delete",
+        confirmClass: "danger"
+      });
+      if(!ok) return;
+
+      state.chores = state.chores.filter(x => x.id !== id);
+      persist();
+      toast("Deleted");
+      renderChores();
+    }
+
+    function completeChore(choreId){
+      const c = state.chores.find(x => x.id === choreId);
+      if(!c) return;
+
+      const gate = canCompleteChore(c);
+      if(!gate.ok){ toast(gate.reason); return; }
+
+      const amount = Number(c.value || 0);
+      if(amount <= 0) return;
+
+      c.lastCompletedAt = nowISO();
+
+      state.earnedTotal = round2(state.earnedTotal + amount);
+      state.activity.unshift({
+        id: uid(),
+        type: "chore",
+        choreId: c.id,
+        title: c.title,
+        value: amount,
+        at: nowISO()
+      });
+
+      persist();
+      playKaChing();
+      showFloatPlus(amount);
+      animateTotal(state.earnedTotal);
+      toast("Ka-ching!");
+      renderActivity();
+      renderChores();
+    }
+
+    // -----------------------------
+    // Activity undo
+    // -----------------------------
+    async function undoActivity(id){
+      const item = state.activity.find(a => a.id === id);
+      if(!item) return;
+
+      state.earnedTotal = round2(state.earnedTotal - Number(item.value || 0));
+      state.activity = state.activity.filter(a => a.id !== id);
+
+      // If it was a chore, allow completion again (simple model)
+      if(item.type === "chore" && item.choreId){
+        const c = state.chores.find(x => x.id === item.choreId);
+        if(c) c.lastCompletedAt = null;
+      }
+
+      persist();
+      showFloatPlus(-Number(item.value || 0));
+      animateTotal(state.earnedTotal);
+      toast("Undone");
+      renderActivity();
+      renderChores();
+    }
+
+    // -----------------------------
+    // Manual add/subtract (affects current period)
+    // -----------------------------
+    function openManualAdjust(sign){
+      const isAdd = sign === 1;
+      openModal({
+        title: isAdd ? "Add amount" : "Subtract amount",
+        bodyHTML: `
+          <div style="font-weight:800; color:var(--muted); line-height:1.35;">
+            Enter a figure to ${isAdd ? "add to" : "subtract from"} the <strong>current period</strong> total. This is logged so you can undo it.
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <label>Amount (GBP)</label>
+            <input id="mValue" inputmode="decimal" placeholder="0.00" />
+          </div>
+        `,
+        footerButtons: [
+          { label: "Cancel", className: "ghost", onClick: closeModal },
+          { label: isAdd ? "Add" : "Subtract", className: isAdd ? "good" : "danger", onClick: () => {
+              const v = toMoney(document.getElementById("mValue")?.value);
+              if(v <= 0){ toast("Enter a value > £0"); return; }
+              const amount = round2(v * sign);
+              state.earnedTotal = round2(state.earnedTotal + amount);
+              state.activity.unshift({
+                id: uid(),
+                type: "manual",
+                title: isAdd ? "Manual add" : "Manual subtract",
+                value: amount,
+                at: nowISO()
+              });
+              persist();
+              closeModal();
+              showFloatPlus(amount);
+              animateTotal(state.earnedTotal);
+              toast("Adjusted");
+              renderActivity();
+            }
+          }
+        ]
+      });
+      setTimeout(() => document.getElementById("mValue")?.focus(), 40);
+    }
+
+    // -----------------------------
+    // Reset current period -> add to History (Savings bank)
+    // -----------------------------
+    async function resetTotal(){
+      const ok = await confirmModal({
+        title: "Reset current period?",
+        message: "This closes the current period, adds it into History (Savings bank), and starts a new one.",
+        confirmLabel: "Reset",
+        confirmClass: "warn"
+      });
+      if(!ok) return;
+
+      const endAt = nowISO();
+      const periodTotal = round2(state.earnedTotal);
+
+      state.history.unshift({
+        id: uid(),
+        startAt: state.periodStartAt || state.lastResetAt || endAt,
+        endAt,
+        total: periodTotal,
+        items: state.activity.length
+      });
+
+      state.lastResetAt = endAt;
+      state.periodStartAt = endAt;
+      state.earnedTotal = 0;
+
+      if(!state.settings?.keepActivityOnReset){
+        state.activity = [];
+      }
+
+      persist();
+      animateTotal(0);
+      toast("Reset complete");
+      render();
+    }
+
+    // -----------------------------
+    // History grouping
+    // -----------------------------
+    function groupHistory(mode){
+      const groups = new Map();
+      for(const rec of state.history){
+        const endDate = new Date(rec.endAt);
+        const key = mode === "week" ? isoWeekKey(endDate) : monthKey(endDate);
+        const prev = groups.get(key) || { key, total:0, records:0 };
+        prev.total = round2(prev.total + Number(rec.total||0));
+        prev.records += 1;
+        groups.set(key, prev);
+      }
+      return Array.from(groups.values()).sort((a,b) => a.key < b.key ? 1 : -1);
+    }
+
+    function historyFilters(){
+      const mode = el.historyMode.value;
+      const opts = [{ value:"all", label:"All" }];
+      if(mode === "records"){
+        const months = Array.from(new Set(state.history.map(h => monthKey(new Date(h.endAt))))).sort().reverse();
+        months.forEach(m => opts.push({ value:m, label:m }));
+      } else if(mode === "week"){
+        const weeks = groupHistory("week").map(g => g.key);
+        weeks.forEach(w => opts.push({ value:w, label:w }));
+      } else if(mode === "month"){
+        const months = groupHistory("month").map(g => g.key);
+        months.forEach(m => opts.push({ value:m, label:m }));
+      }
+      return opts;
+    }
+
+    // -----------------------------
+    // Goals CRUD + redeem (subtract from Savings bank)
+    // -----------------------------
+    function openGoalEditor(goal){
+      const isEdit = !!goal;
+      const g = goal || { id: uid(), title:"", desc:"", cost: 5.0, redeemedAt:null, createdAt: nowISO() };
+
+      openModal({
+        title: isEdit ? "Edit goal" : "Add goal",
+        bodyHTML: `
+          <div class="field">
+            <label>Goal title</label>
+            <input id="gTitle" maxlength="40" placeholder="e.g., Football" value="${escapeHTML(g.title)}" />
+          </div>
+          <div class="field">
+            <label>Short description</label>
+            <textarea id="gDesc" maxlength="90" placeholder="What is it for?">${escapeHTML(g.desc || "")}</textarea>
+          </div>
+          <div class="field">
+            <label>Cost (GBP)</label>
+            <input id="gCost" inputmode="decimal" placeholder="10.00" value="${Number(g.cost || 0).toFixed(2)}" />
+          </div>
+        `,
+        footerButtons: [
+          { label: "Cancel", className: "ghost", onClick: closeModal },
+          { label: isEdit ? "Save" : "Add", className: "primary", onClick: () => {
+              const title = (document.getElementById("gTitle")?.value || "").trim();
+              const desc = (document.getElementById("gDesc")?.value || "").trim();
+              const cost = toMoney(document.getElementById("gCost")?.value);
+
+              if(!title){ toast("Add a title"); return; }
+              if(cost <= 0){ toast("Cost must be > £0"); return; }
+
+              if(isEdit){
+                const idx = state.goals.findIndex(x => x.id === g.id);
+                if(idx >= 0) state.goals[idx] = { ...state.goals[idx], title, desc, cost };
+              } else {
+                state.goals.unshift({ id: g.id, title, desc, cost, createdAt: nowISO(), redeemedAt: null });
+              }
+              persist();
+              closeModal();
+              toast(isEdit ? "Saved" : "Added");
+              renderGoals();
+            }
+          }
+        ]
+      });
+      setTimeout(() => document.getElementById("gTitle")?.focus(), 50);
+    }
+
+    async function deleteGoal(id){
+      const g = state.goals.find(x => x.id === id);
+      if(!g) return;
+      const ok = await confirmModal({
+        title: "Delete goal?",
+        message: `Delete <strong>${escapeHTML(g.title)}</strong>?`,
+        confirmLabel: "Delete",
+        confirmClass: "danger"
+      });
+      if(!ok) return;
+
+      state.goals = state.goals.filter(x => x.id !== id);
+      persist();
+      toast("Deleted");
+      renderGoals();
+    }
+
+    async function redeemGoal(id){
+      const g = state.goals.find(x => x.id === id);
+      if(!g) return;
+      if(g.redeemedAt){ toast("Already redeemed"); return; }
+
+      const available = bankAvailable();
+      const ok = await confirmModal({
+        title: available < g.cost ? "Not enough in Savings bank" : "Redeem goal?",
+        message: available < g.cost
+          ? `Savings bank available is <strong>${fmtGBP(available)}</strong>, but this goal costs <strong>${fmtGBP(g.cost)}</strong>. Redeem anyway?`
+          : `Redeem <strong>${escapeHTML(g.title)}</strong> for <strong>${fmtGBP(g.cost)}</strong>? (Savings bank available will reduce.)`,
+        confirmLabel: "Redeem",
+        confirmClass: available < g.cost ? "warn" : "good"
+      });
+      if(!ok) return;
+
+      g.redeemedAt = nowISO();
+      state.bankSpent = round2(Number(state.bankSpent || 0) + Number(g.cost || 0));
+
+      state.goalRedemptions = state.goalRedemptions || [];
+      state.goalRedemptions.unshift({ id: uid(), goalId: g.id, title: g.title, cost: g.cost, at: g.redeemedAt });
+
+      persist();
+      toast("Redeemed");
+      renderGoals();
+      renderHistory();
+    }
+
+    // -----------------------------
+    // Export / Import
+    // -----------------------------
+    function exportJSON(){ return JSON.stringify(state, null, 2); }
+
+    async function exportCopy(){
+      try{
+        await navigator.clipboard.writeText(exportJSON());
+        toast("Export copied");
+      }catch(e){ toast("Copy not available"); }
+    }
+
+    function exportDownload(){
+      const blob = new Blob([exportJSON()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `olis-pocket-money-export-${localDateKey(nowISO())}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("Downloaded");
+    }
+
+    async function exportShare(){
+      const payload = exportJSON();
+      if(!navigator.share){ toast("Share not supported"); return; }
+      try{
+        const blob = new Blob([payload], { type: "application/json" });
+        const file = new File([blob], `olis-pocket-money-export-${localDateKey(nowISO())}.json`, { type: "application/json" });
+        if(navigator.canShare && navigator.canShare({ files: [file] })){
+          await navigator.share({ title: "Oli's Pocket Money export", text: "Pocket money data export", files: [file] });
+        } else {
+          await navigator.share({ title: "Oli's Pocket Money export", text: payload });
+        }
+        toast("Shared");
+      }catch(e){}
+    }
+
+    async function importFromText(raw){
+      let obj;
+      try{ obj = JSON.parse(raw); }catch(e){ toast("Invalid JSON"); return false; }
+
+      const ok = await confirmModal({
+        title: "Import and replace data?",
+        message: "Import will replace chores, activity, history and goals on this device. (Export first if you want a backup.)",
+        confirmLabel: "Import",
+        confirmClass: "warn"
+      });
+      if(!ok) return false;
+
+      state = mergeDefaults(obj);
+      persist();
+      animateTotal(state.earnedTotal);
+      toast("Imported");
+      render();
+      scheduleSundayReminder();
+      return true;
+    }
+
+    function openImportModal(){
+      openModal({
+        title: "Import",
+        bodyHTML: `
+          <div style="font-weight:800; color:var(--muted); line-height:1.35;">Paste an export JSON, or pick a .json export file.</div>
+          <div class="field" style="margin-top:12px;">
+            <label>Paste JSON</label>
+            <textarea id="importText" placeholder="{ ... }" style="min-height:140px;"></textarea>
+          </div>
+          <div class="divider"></div>
+          <div class="field">
+            <label>Or pick file</label>
+            <input id="importFile" type="file" accept="application/json,.json" />
+          </div>
+          <div class="footnote">Import replaces local data.</div>
+        `,
+        footerButtons: [
+          { label: "Cancel", className: "ghost", onClick: closeModal },
+          { label: "Import pasted", className: "warn", onClick: async () => {
+              const raw = (document.getElementById("importText")?.value || "").trim();
+              if(!raw){ toast("Paste JSON first"); return; }
+              const done = await importFromText(raw);
+              if(done) closeModal();
+            }
+          },
+          { label: "Import file", className: "warn", onClick: async () => {
+              const input = document.getElementById("importFile");
+              if(!input || !input.files || !input.files[0]){ toast("Choose a file"); return; }
+              const text = await input.files[0].text();
+              const done = await importFromText(text);
+              if(done) closeModal();
+            }
+          }
+        ]
+      });
+    }
+
+    function openExportModal(){
+      openModal({
+        title: "Export",
+        bodyHTML: `
+          <div style="font-weight:800; color:var(--muted); line-height:1.35;">Export your data for backup or to move between phones.</div>
+          <div class="divider"></div>
+          <div class="row" style="justify-content:flex-start; gap:8px;">
+            <button class="primary" id="exCopy">Copy JSON</button>
+            <button class="good" id="exDownload">Download .json</button>
+            <button class="ghost" id="exShare">Share</button>
+          </div>
+          <div class="footnote">On Android, <strong>Share</strong> opens the “Share with…” sheet when supported.</div>
+        `,
+        footerButtons: [{ label: "Close", className: "ghost", onClick: closeModal }]
+      });
+
+      setTimeout(() => {
+        document.getElementById("exCopy")?.addEventListener("click", exportCopy);
+        document.getElementById("exDownload")?.addEventListener("click", exportDownload);
+        document.getElementById("exShare")?.addEventListener("click", exportShare);
+      }, 0);
+    }
+
+    // -----------------------------
+    // Settings
+    // -----------------------------
+    async function requestNotifications(){
+      if(!("Notification" in window)){ toast("Notifications not supported"); return; }
+      try{
+        const perm = await Notification.requestPermission();
+        if(perm === "granted"){
+          state.settings.notificationsEnabled = true;
+          persist();
+          toast("Notifications enabled");
+          await swNotify("Oli's Pocket Money", "Notifications are enabled.");
+        } else {
+          state.settings.notificationsEnabled = false;
+          persist();
+          toast("Notifications blocked");
+        }
+      }catch(e){ toast("Notification request failed"); }
+    }
+
+    function openSettings(){
+      const s = state.settings || {};
+      openModal({
+        title: "Settings",
+        bodyHTML: `
+          <div class="field">
+            <label>Sound</label>
+            <select id="setSound">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Keep Activity log on Reset</label>
+            <select id="setKeepAct">
+              <option value="off">Off (clear activity on reset)</option>
+              <option value="on">On (keep activity after reset)</option>
+            </select>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label>Weekly reset reminder (Sunday)</label>
+            <select id="setRemEnabled">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+
+          <div class="row" style="justify-content:flex-start; gap:8px;">
+            <div class="pill" style="gap:10px;">
+              <span>Time</span>
+              <input id="setRemTime" type="time" style="width:auto; padding:8px 10px; border-radius:12px;" />
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="justify-content:flex-start; gap:8px;">
+            <button class="ghost" id="notifyBtn">Enable notifications</button>
+          </div>
+          <div class="footnote">
+            Without a push backend, reminders are reliable as an <strong>in-app prompt</strong> when you open the app on Sunday after your chosen time.
+            Notifications are best-effort.
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="justify-content:flex-start; gap:8px;">
+            <button class="primary" id="exportBtn">Export</button>
+            <button class="warn" id="importBtn">Import</button>
+          </div>
+        `,
+        footerButtons: [
+          { label: "Close", className: "ghost", onClick: closeModal },
+          { label: "Save", className: "primary", onClick: () => {
+              const sound = document.getElementById("setSound")?.value === "on";
+              const keep = document.getElementById("setKeepAct")?.value === "on";
+              const rem = document.getElementById("setRemEnabled")?.value === "on";
+              const t = (document.getElementById("setRemTime")?.value || "18:00");
+              const [hh, mm] = t.split(":");
+              state.settings.soundEnabled = !!sound;
+              state.settings.keepActivityOnReset = !!keep;
+              state.settings.weeklyResetReminderEnabled = !!rem;
+              state.settings.reminderHour = Math.max(0, Math.min(23, Number(hh || 18)));
+              state.settings.reminderMinute = Math.max(0, Math.min(59, Number(mm || 0)));
+              persist();
+              closeModal();
+              toast("Saved");
+              scheduleSundayReminder();
+            }
+          }
+        ]
+      });
+
+      setTimeout(() => {
+        document.getElementById("setSound").value = s.soundEnabled ? "on" : "off";
+        document.getElementById("setKeepAct").value = s.keepActivityOnReset ? "on" : "off";
+        document.getElementById("setRemEnabled").value = s.weeklyResetReminderEnabled ? "on" : "off";
+        const hh = String(s.reminderHour ?? 18).padStart(2,"0");
+        const mm = String(s.reminderMinute ?? 0).padStart(2,"0");
+        document.getElementById("setRemTime").value = `${hh}:${mm}`;
+
+        document.getElementById("exportBtn")?.addEventListener("click", openExportModal);
+        document.getElementById("importBtn")?.addEventListener("click", openImportModal);
+        document.getElementById("notifyBtn")?.addEventListener("click", requestNotifications);
+      }, 0);
+    }
+
+    // -----------------------------
+    // Weekly reminder (in-app prompt + best-effort notification)
+    // -----------------------------
+    let reminderTimer = null;
+
+    function nextSundayAt(hh, mm){
+      const now = new Date();
+      const d = new Date(now);
+      const day = d.getDay();      // 0 Sunday
+      const daysUntil = (7 - day) % 7;
+      d.setDate(d.getDate() + daysUntil);
+      d.setHours(hh, mm, 0, 0);
+      if(daysUntil === 0 && d.getTime() <= now.getTime()){
+        d.setDate(d.getDate() + 7);
+      }
+      return d;
+    }
+
+    function shouldPromptThisSunday(){
+      const s = state.settings || {};
+      if(!s.weeklyResetReminderEnabled) return false;
+
+      const now = new Date();
+      if(now.getDay() !== 0) return false; // Sunday
+
+      const hh = s.reminderHour ?? 18;
+      const mm = s.reminderMinute ?? 0;
+      const threshold = new Date(now);
+      threshold.setHours(hh, mm, 0, 0);
+      if(now < threshold) return false;
+
+      const wk = currentWeekKey();
+      if(s.lastReminderWeekKey === wk) return false;
+
+      return true;
+    }
+
+    async function showWeeklyReminder(){
+      const ok = await confirmModal({
+        title: "Weekly reset reminder",
+        message: "It’s Sunday. Do you want to reset the current period total for a new week?",
+        confirmLabel: "Reset now",
+        confirmClass: "warn",
+        cancelLabel: "Not now"
+      });
+
+      state.settings.lastReminderWeekKey = currentWeekKey();
+      persist();
+
+      if(ok) resetTotal();
+    }
+
+    function scheduleSundayReminder(){
+      clearTimeout(reminderTimer);
+      const s = state.settings || {};
+      if(!s.weeklyResetReminderEnabled) return;
+
+      const target = nextSundayAt(s.reminderHour ?? 18, s.reminderMinute ?? 0);
+      const ms = Math.max(0, target.getTime() - Date.now());
+
+      reminderTimer = setTimeout(async () => {
+        // Mark and prompt
+        state.settings.lastReminderWeekKey = currentWeekKey();
+        persist();
+
+        if(state.settings.notificationsEnabled){
+          await swNotify("Oli's Pocket Money", "It’s Sunday — ready to reset the weekly total?");
+        }
+
+        await showWeeklyReminder();
+        scheduleSundayReminder();
+      }, ms);
+    }
+
+    async function checkSundayOnOpen(){
+      if(shouldPromptThisSunday()){
+        state.settings.lastReminderWeekKey = currentWeekKey();
+        persist();
+
+        if(state.settings.notificationsEnabled){
+          await swNotify("Oli's Pocket Money", "It’s Sunday — ready to reset the weekly total?");
+        }
+
+        await showWeeklyReminder();
+      }
+    }
+
+    // -----------------------------
+    // Testing clears (passcode 2408)
+    // -----------------------------
+    async function clearActivityTesting(){
+      const okPass = await passcodeModal({
+        title: "Clear activity log",
+        message: "Enter the passcode to clear the Activity log (testing)."
+      });
+      if(!okPass){ toast("Wrong passcode"); return; }
+
+      const ok = await confirmModal({
+        title: "Clear Activity log?",
+        message: "This will remove all Activity items (testing).",
+        confirmLabel: "Clear",
+        confirmClass: "danger"
+      });
+      if(!ok) return;
+
+      state.activity = [];
+      persist();
+      toast("Activity cleared");
+      renderActivity();
+    }
+
+    async function clearHistoryTesting(){
+      const okPass = await passcodeModal({
+        title: "Clear Savings bank",
+        message: "Enter the passcode to clear History / Savings bank (testing)."
+      });
+      if(!okPass){ toast("Wrong passcode"); return; }
+
+      const ok = await confirmModal({
+        title: "Clear Savings bank?",
+        message: "This removes all History records and resets redeemed-goal spending (testing).",
+        confirmLabel: "Clear",
+        confirmClass: "danger"
+      });
+      if(!ok) return;
+
+      state.history = [];
+      state.bankSpent = 0;
+      state.goalRedemptions = [];
+      (state.goals || []).forEach(g => g.redeemedAt = null);
+
+      persist();
+      toast("Bank cleared");
+      renderHistory();
+      renderGoals();
+    }
+
+    // -----------------------------
+    // Render
+    // -----------------------------
+    function persist(){ safeSave(state); }
+
+    function renderHeader(){
+      el.lastReset.textContent = "Last reset: " + (state.lastResetAt ? fmtDateTime(state.lastResetAt) : "never");
+      el.totalDisplay.textContent = fmtGBP(state.earnedTotal);
+      el.totalDisplay.dataset.value = String(state.earnedTotal);
+    }
+
+    function renderChores(){
+      el.choresList.innerHTML = "";
+      const list = state.chores || [];
+      el.choresEmpty.style.display = list.length ? "none" : "block";
+
+      list.forEach(c => {
+        const gate = canCompleteChore(c);
+        const freqLabel = c.frequency === "daily" ? "Daily" : (c.frequency === "weekly" ? "Weekly" : "Anytime");
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="chore">
+            <div class="badge">
+              <div style="font-size:14px; font-weight:950;">${escapeHTML(fmtGBP(c.value))}</div>
+              <div style="font-size:10px; font-weight:900; color:var(--muted); margin-top:5px;">${freqLabel}</div>
+            </div>
+            <div class="meta">
+              <p class="t">${escapeHTML(c.title)}</p>
+              <p class="d">${escapeHTML(c.desc || "")}</p>
+              <div style="margin-top:8px; color:var(--muted2); font-weight:850; font-size:12px;">
+                ${c.lastCompletedAt ? `Last: ${fmtDateTime(c.lastCompletedAt)}` : "Not done yet"}
+              </div>
+              <div style="height:10px"></div>
+              <div class="actions">
+                <button class="good" data-act="complete" ${gate.ok ? "" : "disabled"}>${gate.ok ? "Complete" : gate.reason}</button>
+                <button class="ghost" data-act="edit">Edit</button>
+                <button class="danger" data-act="delete">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+        card.querySelector('[data-act="complete"]').addEventListener("click", () => completeChore(c.id));
+        card.querySelector('[data-act="edit"]').addEventListener("click", () => openChoreEditor(c));
+        card.querySelector('[data-act="delete"]').addEventListener("click", () => deleteChore(c.id));
+
+        el.choresList.appendChild(card);
+      });
+    }
+
+    function renderActivity(){
+      const list = state.activity || [];
+      el.activityList.innerHTML = "";
+      el.activityEmpty.style.display = list.length ? "none" : "block";
+      el.activityCount.textContent = String(list.length);
+      el.periodTotal.textContent = fmtGBP(state.earnedTotal);
+
+      list.forEach(a => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const kind = a.type === "manual" ? "Manual" : "Chore";
+        const val = Number(a.value || 0);
+        const sign = val >= 0 ? "+" : "−";
+        const abs = fmtGBP(Math.abs(val));
+
+        card.innerHTML = `
+          <div class="row" style="align-items:flex-start;">
+            <div>
+              <div style="font-weight:900; font-size:14px;">${escapeHTML(a.title || "(item)")}</div>
+              <div style="margin-top:2px; color:var(--muted); font-weight:800; font-size:12px;">${kind} • ${fmtDateTime(a.at)}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:950; font-size:16px;">${sign}${abs}</div>
+              <div style="height:8px"></div>
+              <button class="warn" data-act="undo">Undo</button>
+            </div>
+          </div>
+        `;
+
+        card.querySelector('[data-act="undo"]').addEventListener("click", () => undoActivity(a.id));
+        el.activityList.appendChild(card);
+      });
+    }
+
+    function renderHistory(){
+      if(el.bankTotal) el.bankTotal.textContent = fmtGBP(bankTotal());
+      if(el.bankAvailable) el.bankAvailable.textContent = fmtGBP(bankAvailable());
+
+      const mode = el.historyMode.value;
+      const opts = historyFilters();
+      const prev = el.historyFilter.value || "all";
+      el.historyFilter.innerHTML = opts.map(o => `<option value="${escapeHTML(o.value)}">${escapeHTML(o.label)}</option>`).join("");
+      if(opts.some(o => o.value === prev)) el.historyFilter.value = prev;
+      else el.historyFilter.value = "all";
+
+      const filterVal = el.historyFilter.value;
+      el.historyList.innerHTML = "";
+
+      if(mode === "records"){
+        const records = (state.history || []).filter(r => {
+          if(filterVal === "all") return true;
+          return monthKey(new Date(r.endAt)) === filterVal;
+        });
+
+        el.historyEmpty.style.display = records.length ? "none" : "block";
+
+        records.forEach(r => {
+          const card = document.createElement("div");
+          card.className = "card";
+          const dur = `${fmtDateTime(r.startAt)} → ${fmtDateTime(r.endAt)}`;
+          card.innerHTML = `
+            <div class="row" style="align-items:flex-start;">
+              <div>
+                <div style="font-weight:950; font-size:14px;">Period total: ${fmtGBP(r.total)}</div>
+                <div style="margin-top:2px; color:var(--muted); font-weight:800; font-size:12px;">${dur} • ${r.items || 0} activity items</div>
+              </div>
+              <span class="pill">${monthKey(new Date(r.endAt))}</span>
+            </div>
+          `;
+          el.historyList.appendChild(card);
+        });
+        return;
+      }
+
+      const grouped = groupHistory(mode);
+      const shown = grouped.filter(g => filterVal === "all" || g.key === filterVal);
+      el.historyEmpty.style.display = shown.length ? "none" : "block";
+
+      shown.forEach(g => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const label = mode === "week" ? `Week ${g.key}` : `Month ${g.key}`;
+        card.innerHTML = `
+          <div class="row">
+            <div>
+              <div style="font-weight:950; font-size:14px;">${label}</div>
+              <div style="margin-top:2px; color:var(--muted); font-weight:800; font-size:12px;">${g.records} reset period(s)</div>
+            </div>
+            <div style="font-weight:950; font-size:16px;">${fmtGBP(g.total)}</div>
+          </div>
+        `;
+        el.historyList.appendChild(card);
+      });
+    }
+
+    function renderGoals(){
+      const list = state.goals || [];
+      el.goalsList.innerHTML = "";
+      el.goalsEmpty.style.display = list.length ? "none" : "block";
+
+      const available = bankAvailable();
+      el.goalBalance.textContent = fmtGBP(available);
+      el.goalSpent.textContent = fmtGBP(state.bankSpent || 0);
+
+      list.forEach(g => {
+        const redeemed = !!g.redeemedAt;
+        const progress = g.cost > 0 ? Math.max(0, Math.min(1, available / g.cost)) : 0;
+        const pct = Math.round(progress * 100);
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="row" style="align-items:flex-start; gap:12px;">
+            <div style="flex:1 1 auto;">
+              <div style="font-weight:950; font-size:15px;">${escapeHTML(g.title)}</div>
+              <div style="margin-top:2px; color:var(--muted); font-weight:800; font-size:12px;">${escapeHTML(g.desc || "")}</div>
+
+              <div style="height:10px"></div>
+
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="flex:1 1 auto; height:10px; border-radius:999px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); overflow:hidden;">
+                  <div style="height:100%; width:${pct}%; background: linear-gradient(90deg, rgba(34,197,94,.8), rgba(124,58,237,.85));"></div>
+                </div>
+                <div style="font-weight:950; font-size:12px; color:var(--muted2);">${pct}%</div>
+              </div>
+
+              <div style="margin-top:8px; color:var(--muted); font-weight:850; font-size:12px;">
+                Cost: <strong style="color:var(--text);">${fmtGBP(g.cost)}</strong>
+                ${redeemed ? ` • Redeemed: <strong style="color:var(--text);">${fmtDateTime(g.redeemedAt)}</strong>` : ""}
+              </div>
+            </div>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+              ${redeemed ? `<span class="pill">Redeemed</span>` : `<button class="good" data-act="redeem">Redeem</button>`}
+              <button class="ghost" data-act="edit">Edit</button>
+              <button class="danger" data-act="delete">Delete</button>
+            </div>
+          </div>
+        `;
+
+        const redeemBtn = card.querySelector('[data-act="redeem"]');
+        if(redeemBtn) redeemBtn.addEventListener("click", () => redeemGoal(g.id));
+        card.querySelector('[data-act="edit"]').addEventListener("click", () => openGoalEditor(g));
+        card.querySelector('[data-act="delete"]').addEventListener("click", () => deleteGoal(g.id));
+
+        el.goalsList.appendChild(card);
+      });
+    }
+
+    function render(){
+      renderHeader();
+      renderChores();
+      renderActivity();
+      renderHistory();
+      renderGoals();
+    }
+
+    // -----------------------------
+    // Events
+    // -----------------------------
+    el.addChoreBtn.addEventListener("click", () => openChoreEditor(null));
+    el.resetTotalBtn.addEventListener("click", resetTotal);
+    el.manualAddBtn.addEventListener("click", () => openManualAdjust(1));
+    el.manualSubBtn.addEventListener("click", () => openManualAdjust(-1));
+    el.clearActivityBtn.addEventListener("click", clearActivityTesting);
+    el.clearHistoryBtn.addEventListener("click", clearHistoryTesting);
+    el.addGoalBtn.addEventListener("click", () => openGoalEditor(null));
+    el.settingsBtn.addEventListener("click", openSettings);
+
+    el.historyMode.addEventListener("change", renderHistory);
+    el.historyFilter.addEventListener("change", renderHistory);
+
+    // First render
+    render();
+
+    // Allow sound on first user interaction
+    document.addEventListener("pointerdown", () => {
+      if(audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+    }, { once: true });
+
+    // Sunday reminder
+    scheduleSundayReminder();
+    checkSundayOnOpen();
+
+  })();
+  </script>
+</body>
+</html>
